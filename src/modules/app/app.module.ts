@@ -5,6 +5,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { AuthenticationModule } from '../authentication/authentication.module';
 import { DatabaseModule } from '../database/database.module';
 import { UsersModule } from '../users/users.module';
+import { Request, Response } from 'express';
 
 @Module({
   imports: [
@@ -13,12 +14,14 @@ import { UsersModule } from '../users/users.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       graphiql: true,
+      context: ({ req, res }: { req: Request; res: Response }) => ({
+        req,
+        res,
+      }),
     }),
     DatabaseModule,
     AuthenticationModule,
     UsersModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
