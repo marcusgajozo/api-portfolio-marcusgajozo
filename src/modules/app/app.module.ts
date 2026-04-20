@@ -2,8 +2,9 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
-import { DatabaseModule } from '../database/database.module';
 import { AuthenticationModule } from '../authentication/authentication.module';
+import { DatabaseModule } from '../database/database.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthenticationModule } from '../authentication/authentication.module';
     }),
     DatabaseModule,
     AuthenticationModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],

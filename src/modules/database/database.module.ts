@@ -1,20 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
-import mongoose from 'mongoose';
+import { MongooseModule } from '@nestjs/mongoose';
 import { databaseConfig } from './database.config';
 
-export const DATABASE_CONNECTION = 'DATABASE_CONNECTION';
-
 @Module({
-  imports: [ConfigModule.forFeature(databaseConfig)],
-  providers: [
-    {
+  imports: [
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule.forFeature(databaseConfig)],
       inject: [databaseConfig.KEY],
-      provide: DATABASE_CONNECTION,
-      useFactory: (config: ConfigType<typeof databaseConfig>) =>
-        mongoose.connect(config.url),
-    },
+      useFactory: (config: ConfigType<typeof databaseConfig>) => ({
+        uri: config.url,
+      }),
+    }),
   ],
-  exports: [DATABASE_CONNECTION],
+  exports: [MongooseModule],
 })
 export class DatabaseModule {}
