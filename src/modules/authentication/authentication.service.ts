@@ -37,8 +37,6 @@ export class AuthenticationService {
       { expiresIn: '7d' },
     );
 
-    console.log('Generated tokens:', { accessToken, refreshToken });
-
     return { accessToken, refreshToken };
   }
 }
