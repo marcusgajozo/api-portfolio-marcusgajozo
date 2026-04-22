@@ -4,12 +4,25 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-// TODO: Ajustar esse guard para pegar o token do cookie
+export interface JwtPayload {
+  sub: string;
+  email?: string;
+}
+
+export interface RequestWithUser extends Request {
+  user: JwtPayload;
+}
+
+export interface GqlContext {
+  req: RequestWithUser;
+}
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -18,31 +31,31 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 1. Verifica se a rota tem o decorator @Public()
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
     if (isPublic) {
-      return true; // Se for pública, libera o acesso imediatamente
+      return true;
     }
 
-    // 2. Extrai a requisição (padrão REST)
-    const request: Request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const ctx = GqlExecutionContext.create(context);
+
+    const request = ctx.getContext<GqlContext>().req;
+
+    const token = this.extractTokenFromCookie(request);
 
     if (!token) {
-      throw new UnauthorizedException('Token não encontrado');
+      throw new UnauthorizedException('Token não encontrado no cookie');
     }
 
     try {
-      // 3. Valida o token e anexa o payload na requisição
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET, // Garanta que sua secret key está correta aqui!
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
+        secret: process.env.JWT_SECRET,
       });
 
-      request['user'] = payload; // Agora você pode acessar req.user nas suas rotas
+      request.user = payload;
     } catch {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
@@ -50,8 +63,9 @@ export class JwtAuthGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+  private extractTokenFromCookie(request: Request): string | undefined {
+    const token = (request.cookies as Record<string, unknown>)?.['accessToken'];
+
+    return typeof token === 'string' ? token : undefined;
   }
 }
