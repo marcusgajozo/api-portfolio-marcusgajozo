@@ -7,7 +7,8 @@ import { DatabaseModule } from '../database/database.module';
 import { UsersModule } from '../users/users.module';
 import { Request, Response } from 'express';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 // TODO: criar o modulo de projetos
 // TODO: criar o modulo de artigos
@@ -30,11 +31,12 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
     DatabaseModule,
     AuthenticationModule,
     UsersModule,
+    JwtModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Tranca a aplicação inteira
+      useClass: JwtAuthGuard,
     },
   ],
 })
