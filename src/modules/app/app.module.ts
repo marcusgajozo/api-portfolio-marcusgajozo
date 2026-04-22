@@ -15,6 +15,8 @@ import { JwtModule } from '@nestjs/jwt';
 // TODO: conectar na api do LinkedIn para pegar a foto
 // TODO: conectar na api do GitHub para pegar os projetos
 // TODO: conectar na api do Linkedin para publicar os artigos
+// TODO: configurar ambiente de produção e configurar o Dockerfile
+// TODO: adicionar o commitlint, commitizen e o husky para padronizar os commits
 
 @Module({
   imports: [
