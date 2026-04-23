@@ -1,5 +1,10 @@
 ARG NODE_VERSION=24.15.0-alpine
 
+FROM node:${NODE_VERSION} AS development
+
+WORKDIR /usr/src/app
+
+CMD ["npm", "run", "start:dev"]
 
 FROM node:${NODE_VERSION} AS builder
 
