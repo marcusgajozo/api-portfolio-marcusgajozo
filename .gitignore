@@ -2,10 +2,12 @@
 
 !src
 !src/**/*
+!.dockerignore
 !.gitignore
 !.nvmrc
 !.prettierrc
 !docker-compose.local.yaml
+!Dockerfile
 !eslint.config.js
 !LICENSE
 !nest-cli.json
@@ -15,4 +17,3 @@
 !tsconfig.build.json
 !tsconfig.json
 !.env.example
-!Dockerfile
