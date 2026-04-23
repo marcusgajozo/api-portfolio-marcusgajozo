@@ -4,9 +4,7 @@ FROM node:${NODE_VERSION} AS development
 
 WORKDIR /usr/src/app
 
-RUN npm i -g pnpm
-
-CMD ["sh", "-c", "pnpm install && npm run start:dev"]
+CMD ["npm", "run", "start:dev"]
 
 FROM node:${NODE_VERSION} AS builder
 
