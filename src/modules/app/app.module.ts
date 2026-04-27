@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { ProjectModule } from '../projects/projects.module';
 
 // TODO: criar o modulo de projetos
 // TODO: criar o modulo de artigos
@@ -17,6 +18,7 @@ import { JwtModule } from '@nestjs/jwt';
 // TODO: conectar na api do Linkedin para publicar os artigos
 // TODO: configurar ambiente de produção e configurar o Dockerfile
 // TODO: adicionar o commitlint, commitizen e o husky para padronizar os commits
+// TODO: criar um usuário usando as credencias do .env
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { JwtModule } from '@nestjs/jwt';
     AuthenticationModule,
     UsersModule,
     JwtModule,
+    ProjectModule,
   ],
   providers: [
     {
