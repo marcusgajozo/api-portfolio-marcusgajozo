@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app/app.module';
+import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import cookieParser from 'cookie-parser';
-
-// TODO: ajustar a tipagem Cors
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,8 +10,11 @@ async function bootstrap() {
     ? process.env.CORS_WHITELIST.split(',')
     : [];
 
-  app.enableCors({
-    origin: (origin, callback) => {
+  const corsOptions: CorsOptions = {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, origin?: boolean) => void,
+    ) => {
       if (!origin || whitelist.includes(origin)) {
         callback(null, true);
       } else {
@@ -20,7 +22,9 @@ async function bootstrap() {
       }
     },
     credentials: true,
-  });
+  };
+
+  app.enableCors(corsOptions);
 
   app.use(cookieParser());
 
