@@ -28,7 +28,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  await app.listen(process.env.API_PORT ?? 3000);
+  await app.listen(Number(process.env.API_PORT));
 }
 
 void bootstrap();
