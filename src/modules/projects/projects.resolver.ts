@@ -4,6 +4,7 @@ import { ProjectPaginationType } from './dtos/project-pagination.type';
 import { UpdateProjectInput } from './dtos/update-project.input';
 import { ProjectsService } from './projects.service';
 import { Project } from './schemas/project.schema';
+import { PaginationInput } from '@/common/dtos/pagination.input';
 
 @Resolver(() => Project)
 export class ProjectsResolver {
@@ -30,8 +31,10 @@ export class ProjectsResolver {
   }
 
   @Query(() => ProjectPaginationType)
-  async getProjects(): Promise<ProjectPaginationType> {
-    return await this.projectsService.findAll();
+  async getProjects(
+    @Args('pagination') pagination?: PaginationInput,
+  ): Promise<ProjectPaginationType> {
+    return await this.projectsService.findAll(pagination);
   }
 
   @Query(() => Project, { nullable: true })
