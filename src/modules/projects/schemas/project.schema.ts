@@ -18,6 +18,10 @@ export class Project extends BaseSchema {
 
   @Field()
   @Prop()
+  highlights: boolean;
+
+  @Field()
+  @Prop()
   repositoryUrl: string;
 
   @Field()
