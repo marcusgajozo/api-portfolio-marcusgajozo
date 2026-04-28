@@ -1,8 +1,9 @@
-import { Mutation, Resolver, Args, Query } from '@nestjs/graphql';
-import { Project } from './schemas/project.schema';
-import { ProjectsService } from './projects.service';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateProjectInput } from './dtos/create-project.input';
+import { ProjectPaginationType } from './dtos/project-pagination.type';
 import { UpdateProjectInput } from './dtos/update-project.input';
+import { ProjectsService } from './projects.service';
+import { Project } from './schemas/project.schema';
 
 @Resolver(() => Project)
 export class ProjectsResolver {
@@ -28,8 +29,8 @@ export class ProjectsResolver {
     return await this.projectsService.delete(id);
   }
 
-  @Query(() => [Project])
-  async getProjects(): Promise<Project[]> {
+  @Query(() => ProjectPaginationType)
+  async getProjects(): Promise<ProjectPaginationType> {
     return await this.projectsService.findAll();
   }
 

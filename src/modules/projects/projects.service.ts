@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
 import { CreateProjectInput } from './dtos/create-project.input';
 import { UpdateProjectInput } from './dtos/update-project.input';
+import { ProjectPaginationType } from './dtos/project-pagination.type';
+import { PaginationHelper } from '@/common/helpers/pagination.helper';
 
 @Injectable()
 export class ProjectsService {
@@ -26,8 +28,11 @@ export class ProjectsService {
     return await this.projectModel.findByIdAndDelete(id).exec();
   }
 
-  async findAll(): Promise<Project[]> {
-    return await this.projectModel.find().exec();
+  async findAll(): Promise<ProjectPaginationType> {
+    return await PaginationHelper.paginate<Project>({
+      model: this.projectModel,
+      pagination: { first: 10 },
+    });
   }
 
   async findOne(id: string): Promise<Project | null> {
