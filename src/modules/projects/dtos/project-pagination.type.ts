@@ -1,4 +1,6 @@
-import { createPaginatedType } from '@/common/dtos/pagination.type';
+import { createPaginationType } from '@/common/dtos/pagination.type';
 import { Project } from '../schemas/project.schema';
+import { ObjectType } from '@nestjs/graphql';
 
-export class ProjectPaginationType extends createPaginatedType(Project) {}
+@ObjectType()
+export class ProjectPaginationType extends createPaginationType(Project) {}

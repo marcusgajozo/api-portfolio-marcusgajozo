@@ -21,14 +21,14 @@ export interface EdgeShape<T> {
   cursor: string;
 }
 
-export interface PaginatedShape<T> {
+export interface PaginationShape<T> {
   edges: EdgeShape<T>[];
   pageInfo: PageInfoType;
   totalCount: number;
 }
 
-export function createPaginatedType<T>(classRef: Type<T>) {
-  @ObjectType()
+export function createPaginationType<T>(classRef: Type<T>) {
+  @ObjectType(`${classRef.name}EdgeType`)
   class EdgeType {
     @Field(() => classRef)
     node: T;
@@ -37,8 +37,8 @@ export function createPaginatedType<T>(classRef: Type<T>) {
     cursor: string;
   }
 
-  @ObjectType()
-  class PaginatedType {
+  @ObjectType(`${classRef.name}PaginationType`)
+  class PaginationType {
     @Field(() => [EdgeType])
     edges: EdgeType[];
 
@@ -49,5 +49,5 @@ export function createPaginatedType<T>(classRef: Type<T>) {
     totalCount: number;
   }
 
-  return PaginatedType;
+  return PaginationType;
 }

@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
-import { HydratedDocument, Model, Types, QueryFilter } from 'mongoose';
+import { HydratedDocument, Model, QueryFilter, Types } from 'mongoose';
 import { PaginationInput } from '../dtos/pagination.input';
-import { EdgeShape, PaginatedShape } from '../dtos/pagination.type';
+import { EdgeShape, PaginationShape } from '../dtos/pagination.type';
 import { BaseSchema } from '../schemas/base.schema';
 
 type PaginateParams<T extends BaseSchema> = {
@@ -15,7 +15,7 @@ export class PaginationHelper {
     model,
     pagination,
     filter = {},
-  }: PaginateParams<T>): Promise<PaginatedShape<T>> {
+  }: PaginateParams<T>): Promise<PaginationShape<T>> {
     const { after, first = 10 } = pagination;
 
     const safeFirst = Math.min(Math.max(first, 1), 50);
