@@ -6,7 +6,7 @@ import { BaseSchema } from '../schemas/base.schema';
 
 type PaginateParams<T extends BaseSchema> = {
   model: Model<HydratedDocument<T>>;
-  pagination: PaginationInput;
+  pagination: PaginationInput | null;
   filter?: QueryFilter<HydratedDocument<T>>;
 };
 
@@ -16,7 +16,7 @@ export class PaginationHelper {
     pagination,
     filter = {},
   }: PaginateParams<T>): Promise<PaginationShape<T>> {
-    const { after, first = 10 } = pagination;
+    const { after, first = 10 } = pagination || {};
 
     const safeFirst = Math.min(Math.max(first, 1), 50);
     const query: QueryFilter<HydratedDocument<T>> = { ...filter };

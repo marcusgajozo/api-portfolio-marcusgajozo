@@ -32,7 +32,7 @@ export class ProjectsResolver {
 
   @Query(() => ProjectPaginationType)
   async getProjects(
-    @Args('pagination') pagination?: PaginationInput,
+    @Args('pagination', { nullable: true }) pagination: PaginationInput | null,
   ): Promise<ProjectPaginationType> {
     return await this.projectsService.findAll(pagination);
   }

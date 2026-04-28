@@ -29,7 +29,9 @@ export class ProjectsService {
     return await this.projectModel.findByIdAndDelete(id).exec();
   }
 
-  async findAll(pagination: PaginationInput): Promise<ProjectPaginationType> {
+  async findAll(
+    pagination: PaginationInput | null,
+  ): Promise<ProjectPaginationType> {
     return await PaginationHelper.paginate<Project>({
       model: this.projectModel,
       pagination,
