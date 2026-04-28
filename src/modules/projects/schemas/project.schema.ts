@@ -17,7 +17,7 @@ export class Project extends BaseSchema {
   description: string;
 
   @Field()
-  @Prop()
+  @Prop({ default: false })
   star: boolean;
 
   @Field()
