@@ -18,7 +18,7 @@ export class Project extends BaseSchema {
 
   @Field()
   @Prop()
-  highlights: boolean;
+  star: boolean;
 
   @Field()
   @Prop()
