@@ -6,6 +6,8 @@ import { ProjectsService } from './projects.service';
 import { Project } from './schemas/project.schema';
 import { PaginationInput } from '@/common/dtos/pagination.input';
 
+// TODO: tentar implementar o sorting e o filter em getProjects
+
 @Resolver(() => Project)
 export class ProjectsResolver {
   constructor(private readonly projectsService: ProjectsService) {}
