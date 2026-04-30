@@ -16,10 +16,23 @@ export class PaginationHelper {
     pagination,
     filter = {},
   }: PaginateParams<T>): Promise<PaginationShape<T>> {
-    const { after, first = 10 } = pagination || {};
+    const { after, first = 10, before, last = 10 } = pagination || {};
 
     const safeFirst = Math.min(Math.max(first, 1), 50);
+    const safeLast = Math.min(Math.max(last, 1), 50);
+    const safeLimit = after ? safeFirst : safeLast;
+
     const query: QueryFilter<HydratedDocument<T>> = { ...filter };
+
+    if (before) {
+      const decodedId = this.decodeCursor(before);
+
+      if (!Types.ObjectId.isValid(decodedId)) {
+        throw new BadRequestException('Cursor invalido');
+      }
+
+      query._id = { $lt: new Types.ObjectId(decodedId) };
+    }
 
     if (after) {
       const decodedId = this.decodeCursor(after);
@@ -34,11 +47,11 @@ export class PaginationHelper {
     const docs = await model
       .find(query)
       .sort({ _id: 1 })
-      .limit(safeFirst + 1)
+      .limit(safeLimit + 1)
       .exec();
 
-    const hasNextPage = docs.length > safeFirst;
-    const pageDocs = hasNextPage ? docs.slice(0, safeFirst) : docs;
+    const hasNextPage = docs.length > safeLimit;
+    const pageDocs = hasNextPage ? docs.slice(0, safeLimit) : docs;
 
     const edges: EdgeShape<T>[] = pageDocs.map((doc) => ({
       node: doc.toObject() as T,
