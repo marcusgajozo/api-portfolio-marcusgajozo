@@ -1,23 +1,28 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class CreateProjectInput {
-  @IsString()
   @Field()
+  @IsString()
   title: string;
 
-  @IsString()
   @Field()
+  @IsString()
   description: string;
 
+  @Field()
+  @IsOptional()
+  @IsBoolean()
+  start?: boolean;
+
+  @Field()
   @IsOptional()
   @IsString()
-  @Field()
   repositoryUrl?: string;
 
+  @Field()
   @IsOptional()
   @IsString()
-  @Field()
-  liveUrl: string;
+  liveUrl?: string;
 }
