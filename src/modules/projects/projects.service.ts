@@ -7,6 +7,7 @@ import { UpdateProjectInput } from './dtos/update-project.input';
 import { ProjectPaginationType } from './dtos/project-pagination.type';
 import { PaginationHelper } from '@/common/helpers/pagination.helper';
 import { PaginationInput } from '@/common/dtos/pagination.input';
+import { ProjectFilterInput } from './dtos/project-pagination.input';
 
 @Injectable()
 export class ProjectsService {
@@ -30,11 +31,13 @@ export class ProjectsService {
   }
 
   async findAll(
-    pagination: PaginationInput | null,
+    pagination?: PaginationInput,
+    filter?: ProjectFilterInput,
   ): Promise<ProjectPaginationType> {
     return await PaginationHelper.paginate<Project>({
       model: this.projectModel,
       pagination,
+      filter,
     });
   }
 
