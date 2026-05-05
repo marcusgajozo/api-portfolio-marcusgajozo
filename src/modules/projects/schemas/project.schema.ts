@@ -1,4 +1,5 @@
 import { Filterable } from '@/common/decorators/filterable.decorator';
+import { Sortable } from '@/common/decorators/sortable.decorator';
 import { BaseSchema } from '@/common/schemas/base.schema';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -10,6 +11,7 @@ import { HydratedDocument } from 'mongoose';
 @Schema({ timestamps: true, collection: 'projects' })
 export class Project extends BaseSchema {
   @Filterable()
+  @Sortable()
   @Field()
   @Prop({ required: true })
   title: string;

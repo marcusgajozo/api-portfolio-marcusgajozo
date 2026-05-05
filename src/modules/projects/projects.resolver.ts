@@ -1,11 +1,12 @@
 import { PaginationInput } from '@/common/dtos/pagination.input';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateProjectInput } from './dtos/create-project.input';
-import { ProjectFilterInput } from './dtos/project-pagination.input';
+import { ProjectFilterInput } from './dtos/project-filter.input';
 import { ProjectPaginationType } from './dtos/project-pagination.type';
 import { UpdateProjectInput } from './dtos/update-project.input';
 import { ProjectsService } from './projects.service';
 import { Project } from './schemas/project.schema';
+import { ProjectSortingInput } from './dtos/project-sorting.input';
 
 // TODO: tentar implementar o sorting e o filter em getProjects
 
@@ -37,8 +38,10 @@ export class ProjectsResolver {
   async getProjects(
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
     @Args('filter', { nullable: true }) filter?: ProjectFilterInput,
+    @Args('sorting', { type: () => [ProjectSortingInput], nullable: true })
+    sorting?: ProjectSortingInput[],
   ): Promise<ProjectPaginationType> {
-    return await this.projectsService.findAll(pagination, filter);
+    return await this.projectsService.findAll(pagination, filter, sorting);
   }
 
   @Query(() => Project, { nullable: true })
