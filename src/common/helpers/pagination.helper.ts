@@ -129,7 +129,7 @@ export class PaginationHelper {
 
     const safeFirst = Math.min(Math.max(first, 1), 50);
     const safeLast = Math.min(Math.max(last, 1), 50);
-    const safeLimit = after ? safeFirst : safeLast;
+    const safeLimit = after ? safeFirst : before ? safeLast : safeFirst;
 
     const baseQuery = this.buildMongoQuery<HydratedDocument<T>>(filter);
     const paginationQuery: QueryFilter<HydratedDocument<T>> = { ...baseQuery };
