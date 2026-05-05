@@ -108,13 +108,13 @@ export class PaginationHelper {
       } else {
         for (const [key, value] of Object.entries(node)) {
           const newPath = path ? `${path}.${key}` : key;
-          processNode(value, newPath);
+          processNode(value as FilterValue, newPath);
         }
       }
     };
 
     for (const [key, value] of Object.entries(filterInput)) {
-      processNode(value, key);
+      processNode(value as FilterValue, key);
     }
 
     return query as QueryFilter<T>;
