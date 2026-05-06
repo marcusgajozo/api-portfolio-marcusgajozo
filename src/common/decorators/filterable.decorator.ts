@@ -2,7 +2,7 @@ import 'reflect-metadata';
 
 export const FILTERABLE_FIELDS_KEY = 'custom:filterable_fields';
 
-interface FilterableField {
+export interface FilterableField {
   propertyKey: string | symbol;
   type: unknown;
 }
@@ -15,15 +15,21 @@ export function Filterable(): PropertyDecorator {
       propertyKey,
     );
 
-    const constructor = (target as { constructor: object }).constructor;
-
     const existingFields: FilterableField[] =
-      (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, constructor) as
+      (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, target) as
         | FilterableField[]
         | undefined) ?? [];
 
-    existingFields.push({ propertyKey, type });
+    const newFields = [...existingFields];
 
-    Reflect.defineMetadata(FILTERABLE_FIELDS_KEY, existingFields, constructor);
+    const isDuplicate = newFields.some(
+      (field) => field.propertyKey === propertyKey,
+    );
+
+    if (!isDuplicate) {
+      newFields.push({ propertyKey, type });
+    }
+
+    Reflect.defineMetadata(FILTERABLE_FIELDS_KEY, newFields, target);
   };
 }

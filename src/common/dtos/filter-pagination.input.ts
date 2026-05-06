@@ -52,7 +52,7 @@ export function createFilterType<T>(classRef: Type<T>): Type<object> {
   filterTypeCache.set(classRef, FilterInputBase);
 
   const fields =
-    (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, classRef) as
+    (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, classRef.prototype) as
       | FilterableField[]
       | undefined) ?? [];
 
