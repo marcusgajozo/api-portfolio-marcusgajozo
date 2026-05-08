@@ -34,6 +34,18 @@ export class DateFilterInput {
   @Field(() => GraphQLISODateTime, { nullable: true }) lte?: Date;
 }
 
+type FilterConstructor =
+  | StringConstructor
+  | BooleanConstructor
+  | NumberConstructor
+  | DateConstructor;
+
+type FilterInputType =
+  | typeof StringFilterInput
+  | typeof BooleanFilterInput
+  | typeof NumberFilterInput
+  | typeof DateFilterInput;
+
 interface FilterableField {
   propertyKey: string | symbol;
   type: unknown;
@@ -56,22 +68,22 @@ export function createFilterType<T>(classRef: Type<T>): Type<object> {
       | FilterableField[]
       | undefined) ?? [];
 
-  for (const field of fields) {
-    let fieldGraphQLType: Type<unknown>;
+  const FILTER_MAP = new Map<FilterConstructor, FilterInputType>([
+    [String, StringFilterInput],
+    [Boolean, BooleanFilterInput],
+    [Number, NumberFilterInput],
+    [Date, DateFilterInput],
+  ]);
 
-    if (field.type === String) {
-      fieldGraphQLType = StringFilterInput;
-    } else if (field.type === Boolean) {
-      fieldGraphQLType = BooleanFilterInput;
-    } else if (field.type === Number) {
-      fieldGraphQLType = NumberFilterInput;
-    } else if (field.type === Date) {
-      fieldGraphQLType = DateFilterInput;
-    } else if (typeof field.type === 'function') {
+  for (const field of fields) {
+    const type = field.type as FilterConstructor;
+    let fieldGraphQLType = FILTER_MAP.get(type);
+
+    if (!fieldGraphQLType && typeof field.type === 'function') {
       fieldGraphQLType = createFilterType(field.type as Type<object>);
-    } else {
-      continue;
     }
+
+    if (!fieldGraphQLType) continue;
 
     Field(() => fieldGraphQLType, { nullable: true })(
       FilterInputBase.prototype,
