@@ -54,10 +54,8 @@ interface FilterableField {
 const filterTypeCache = new Map<Type<unknown>, Type<object>>();
 
 export function createFilterType<T>(classRef: Type<T>): Type<object> {
-  if (filterTypeCache.has(classRef)) {
-    const cached = filterTypeCache.get(classRef);
-    if (cached) return cached;
-  }
+  const cached = filterTypeCache.get(classRef);
+  if (cached) return cached;
   @InputType(`${classRef.name}FilterInput`, { isAbstract: true })
   class FilterInputBase {}
 

@@ -11,55 +11,36 @@ registerEnumType(SortDirection, {
   name: 'SortDirection',
   description: 'Direção da ordenação (ascendente ou descendente)',
 });
+@InputType()
+export class SortingPaginationFieldInput<T> {
+  @Field(() => Type<T>, { nullable: true }) field?: T;
+  @Field(() => SortDirection, { nullable: true }) direction?: SortDirection;
+}
 
-type DynamicEnum = Record<string, string>;
-
-const registeredEnums = new Map<string, DynamicEnum>();
+const sortingTypeCache = new Map<Type<unknown>, Type<object>>();
 
 export function createSortingPaginationType<TClass>(
   classRef: Type<TClass>,
 ): Type<object> {
-  const enumName = `${classRef.name}SortFields`;
-
-  let dynamicEnum = registeredEnums.get(enumName);
-
-  if (!dynamicEnum) {
-    const sortableFields: string[] =
-      (Reflect.getMetadata(SORTABLE_KEY, classRef.prototype) as
-        | string[]
-        | undefined) ??
-      (Reflect.getMetadata(SORTABLE_KEY, classRef) as string[] | undefined) ??
-      [];
-
-    if (sortableFields.length === 0) {
-      throw new Error(
-        `A classe ${classRef.name} precisa ter pelo menos um campo com @Sortable() para gerar a paginação.`,
-      );
-    }
-
-    dynamicEnum = sortableFields.reduce<DynamicEnum>((acc, field) => {
-      acc[field] = field;
-      return acc;
-    }, {});
-
-    registerEnumType(dynamicEnum, {
-      name: enumName,
-      description: `Campos permitidos para ordenação em ${classRef.name}`,
-    });
-
-    registeredEnums.set(enumName, dynamicEnum);
-  }
-
-  const resolvedEnum = dynamicEnum;
+  const cached = sortingTypeCache.get(classRef);
+  if (cached) return cached;
 
   @InputType(`${classRef.name}SortingPaginationInput`, { isAbstract: true })
-  class SortingPaginationInput {
-    @Field(() => resolvedEnum, { nullable: true })
-    field?: string;
+  class SortingPaginationInput {}
 
-    @Field(() => SortDirection, { nullable: true })
-    direction?: SortDirection;
+  const fieldNames: string[] =
+    (Reflect.getMetadata(SORTABLE_KEY, classRef.prototype) as
+      | string[]
+      | undefined) ?? [];
+
+  for (const fieldName of fieldNames) {
+    Field(() => SortingPaginationFieldInput, { nullable: true })(
+      SortingPaginationInput.prototype,
+      fieldName,
+    );
   }
+
+  sortingTypeCache.set(classRef, SortingPaginationInput);
 
   return SortingPaginationInput;
 }

@@ -9,10 +9,12 @@ export function Sortable(): PropertyDecorator {
 
     const fieldName = propertyKey.toString();
 
-    if (!sortableFields.includes(fieldName)) {
-      sortableFields.push(fieldName);
+    const newFields = [...sortableFields];
+
+    if (!newFields.includes(fieldName)) {
+      newFields.push(fieldName);
     }
 
-    Reflect.defineMetadata(SORTABLE_KEY, sortableFields, target);
+    Reflect.defineMetadata(SORTABLE_KEY, newFields, target);
   };
 }
