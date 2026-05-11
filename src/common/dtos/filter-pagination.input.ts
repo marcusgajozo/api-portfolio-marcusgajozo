@@ -53,6 +53,13 @@ interface FilterableField {
 
 const filterTypeCache = new Map<Type<unknown>, Type<object>>();
 
+const FILTER_MAP = new Map<FilterConstructor, FilterInputType>([
+  [String, StringFilterInput],
+  [Boolean, BooleanFilterInput],
+  [Number, NumberFilterInput],
+  [Date, DateFilterInput],
+]);
+
 export function createFilterType<T>(classRef: Type<T>): Type<object> {
   const cached = filterTypeCache.get(classRef);
   if (cached) return cached;
@@ -62,16 +69,10 @@ export function createFilterType<T>(classRef: Type<T>): Type<object> {
   filterTypeCache.set(classRef, FilterInputBase);
 
   const fields =
-    (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, classRef.prototype) as
-      | FilterableField[]
-      | undefined) ?? [];
-
-  const FILTER_MAP = new Map<FilterConstructor, FilterInputType>([
-    [String, StringFilterInput],
-    [Boolean, BooleanFilterInput],
-    [Number, NumberFilterInput],
-    [Date, DateFilterInput],
-  ]);
+    (Reflect.getMetadata(
+      FILTERABLE_FIELDS_KEY,
+      classRef.prototype as object,
+    ) as FilterableField[] | undefined) ?? [];
 
   for (const field of fields) {
     const type = field.type as FilterConstructor;
