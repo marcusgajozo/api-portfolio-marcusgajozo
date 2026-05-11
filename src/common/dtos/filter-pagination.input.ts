@@ -1,9 +1,16 @@
 import { Type } from '@nestjs/common';
 import { Field, InputType, Float, GraphQLISODateTime } from '@nestjs/graphql';
 import { FILTERABLE_FIELDS_KEY } from '../decorators/filterable.decorator';
+import {
+  BooleanFilter,
+  DateFilter,
+  FilterType,
+  NumberFilter,
+  StringFilter,
+} from '../types/filter-input.type';
 
 @InputType()
-export class StringFilterInput {
+export class StringFilterInput implements StringFilter {
   @Field(() => String, { nullable: true }) eq?: string;
   @Field(() => String, { nullable: true }) ne?: string;
   @Field(() => String, { nullable: true }) like?: string;
@@ -12,12 +19,12 @@ export class StringFilterInput {
 }
 
 @InputType()
-export class BooleanFilterInput {
+export class BooleanFilterInput implements BooleanFilter {
   @Field(() => Boolean, { nullable: true }) eq?: boolean;
 }
 
 @InputType()
-export class NumberFilterInput {
+export class NumberFilterInput implements NumberFilter {
   @Field(() => Float, { nullable: true }) eq?: number;
   @Field(() => Float, { nullable: true }) gt?: number;
   @Field(() => Float, { nullable: true }) gte?: number;
@@ -26,7 +33,7 @@ export class NumberFilterInput {
 }
 
 @InputType()
-export class DateFilterInput {
+export class DateFilterInput implements DateFilter {
   @Field(() => GraphQLISODateTime, { nullable: true }) eq?: Date;
   @Field(() => GraphQLISODateTime, { nullable: true }) gt?: Date;
   @Field(() => GraphQLISODateTime, { nullable: true }) gte?: Date;
@@ -51,7 +58,7 @@ interface FilterableField {
   type: unknown;
 }
 
-const filterTypeCache = new Map<Type<unknown>, Type<object>>();
+const filterTypeCache = new Map<Type<unknown>, Type<FilterType<unknown>>>();
 
 const FILTER_MAP = new Map<FilterConstructor, FilterInputType>([
   [String, StringFilterInput],
@@ -60,7 +67,7 @@ const FILTER_MAP = new Map<FilterConstructor, FilterInputType>([
   [Date, DateFilterInput],
 ]);
 
-export function createFilterType<T>(classRef: Type<T>): Type<object> {
+export function createFilterType<T>(classRef: Type<T>): Type<FilterType<T>> {
   const cached = filterTypeCache.get(classRef);
   if (cached) return cached;
   @InputType(`${classRef.name}FilterInput`, { isAbstract: true })
@@ -76,7 +83,10 @@ export function createFilterType<T>(classRef: Type<T>): Type<object> {
 
   for (const field of fields) {
     const type = field.type as FilterConstructor;
-    let fieldGraphQLType = FILTER_MAP.get(type);
+    let fieldGraphQLType:
+      | FilterInputType
+      | Type<FilterType<unknown>>
+      | undefined = FILTER_MAP.get(type);
 
     if (!fieldGraphQLType && typeof field.type === 'function') {
       fieldGraphQLType = createFilterType(field.type as Type<object>);

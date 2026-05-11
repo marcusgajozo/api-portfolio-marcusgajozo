@@ -3,33 +3,35 @@ import { HydratedDocument, Model, QueryFilter, Types } from 'mongoose';
 import { PaginationInput } from '../dtos/pagination.input';
 import { EdgeShape, PaginationShape } from '../dtos/pagination.type';
 import { BaseSchema } from '../schemas/base.schema';
+import { SortingInput } from '../types/sorting-input.type';
+import {
+  StringFilter,
+  BooleanFilter,
+  DateFilter,
+  FilterType,
+  NumberFilter,
+} from '../types/filter-input.type';
+import { SortDirection } from '../enums/sort-direction.enum';
 
 type FilterPrimitive = string | number | boolean | Date;
-type FilterValue = FilterPrimitive | FilterPrimitive[] | FilterObject;
 type FilterObject = { [key: string]: FilterValue | undefined };
+type FilterValue = FilterPrimitive | FilterPrimitive[] | FilterObject;
 
-type MongoOperatorValue = {
-  $eq?: unknown;
-  $ne?: unknown;
-  $gt?: unknown;
-  $gte?: unknown;
-  $lt?: unknown;
-  $lte?: unknown;
-  $in?: unknown;
-  $nin?: unknown;
-  $regex?: RegExp;
-};
-type MongoQuery = { [key: string]: MongoOperatorValue | MongoQuery };
+export type FilterOperatorKeys =
+  | keyof StringFilter
+  | keyof NumberFilter
+  | keyof DateFilter
+  | keyof BooleanFilter;
 
 type PaginateParams<T extends BaseSchema> = {
   model: Model<HydratedDocument<T>>;
   pagination?: PaginationInput;
-  filter?: Record<string, any>;
-  sorting?: { [P in keyof T]?: 1 | -1 };
+  filter?: FilterType<T>;
+  sorting?: SortingInput[];
 };
 
 export class PaginationHelper {
-  private static readonly OPERATORS = [
+  private static readonly OPERATORS: readonly FilterOperatorKeys[] = [
     'eq',
     'ne',
     'gt',
@@ -37,7 +39,6 @@ export class PaginationHelper {
     'lt',
     'lte',
     'in',
-    'nin',
     'like',
     'ilike',
   ];
@@ -47,74 +48,59 @@ export class PaginationHelper {
   }
 
   private static buildMongoQuery<T>(
-    filterInput?: Record<string, any>,
+    filterInput?: FilterType<T>,
   ): QueryFilter<T> {
     if (!filterInput || Object.keys(filterInput).length === 0) {
       return {};
     }
 
-    const query: MongoQuery = {};
+    const query: Record<string, Record<string, unknown>> = {};
 
     const processNode = (node: FilterValue | undefined, path: string) => {
       if (!node || typeof node !== 'object' || Array.isArray(node)) return;
 
       const keys = Object.keys(node);
-      const isOperatorNode = keys.some((key) => this.OPERATORS.includes(key));
+      const isOperatorNode = keys.some((key) =>
+        this.OPERATORS.includes(key as FilterOperatorKeys),
+      );
 
       if (isOperatorNode) {
         query[path] = {};
-        const target = query[path] as Record<string, unknown>;
+        const target = query[path];
 
-        for (const [operator, value] of Object.entries(node)) {
+        const entries = Object.entries(node) as [FilterOperatorKeys, unknown][];
+
+        for (const [operator, value] of entries) {
           if (value === undefined || value === null) continue;
 
-          switch (operator) {
-            case 'eq':
-              target.$eq = value;
-              break;
-            case 'ne':
-              target.$ne = value;
-              break;
-            case 'gt':
-              target.$gt = value;
-              break;
-            case 'gte':
-              target.$gte = value;
-              break;
-            case 'lt':
-              target.$lt = value;
-              break;
-            case 'lte':
-              target.$lte = value;
-              break;
-            case 'in':
-              target.$in = value;
-              break;
-            case 'nin':
-              target.$nin = value;
-              break;
-            case 'like':
-              target.$regex = new RegExp(this.escapeRegex(String(value)));
-              break;
-            case 'ilike':
-              target.$regex = new RegExp(this.escapeRegex(String(value)), 'i');
-              break;
+          if (operator === 'like') {
+            target['$regex'] = new RegExp(this.escapeRegex(value as string));
+            continue;
           }
-        }
 
-        if (Object.keys(target).length === 0) {
-          delete query[path];
+          if (operator === 'ilike') {
+            target['$regex'] = new RegExp(
+              this.escapeRegex(value as string),
+              'i',
+            );
+            continue;
+          }
+
+          const mongoOperator = `$${operator}`;
+
+          target[mongoOperator] = value;
         }
-      } else {
-        for (const [key, value] of Object.entries(node)) {
-          const newPath = path ? `${path}.${key}` : key;
-          processNode(value as FilterValue, newPath);
-        }
+        return;
+      }
+
+      for (const [key, value] of Object.entries(node)) {
+        const newPath = path ? `${path}.${key}` : key;
+        processNode(value as unknown as FilterValue, newPath);
       }
     };
 
     for (const [key, value] of Object.entries(filterInput)) {
-      processNode(value as FilterValue, key);
+      processNode(value as unknown as FilterValue, key);
     }
 
     return query as QueryFilter<T>;
@@ -124,6 +110,7 @@ export class PaginationHelper {
     model,
     pagination,
     filter,
+    sorting,
   }: PaginateParams<T>): Promise<PaginationShape<T>> {
     const { after, first = 10, before, last = 10 } = pagination || {};
 
@@ -131,8 +118,12 @@ export class PaginationHelper {
     const safeLast = Math.min(Math.max(last, 1), 50);
     const safeLimit = after ? safeFirst : before ? safeLast : safeFirst;
 
-    const baseQuery = this.buildMongoQuery<HydratedDocument<T>>(filter);
-    const paginationQuery: QueryFilter<HydratedDocument<T>> = { ...baseQuery };
+    const baseQuery = this.buildMongoQuery<T>(filter);
+    const mongoSort = this.buildMongoSort(sorting);
+
+    const paginationQuery: QueryFilter<HydratedDocument<T>> = {
+      ...baseQuery,
+    };
 
     if (before) {
       const decodedId = this.decodeCursor(before);
@@ -152,7 +143,7 @@ export class PaginationHelper {
 
     const docs = await model
       .find(paginationQuery)
-      .sort({ _id: 1 })
+      .sort(mongoSort)
       .limit(safeLimit + 1)
       .exec();
 
@@ -188,5 +179,23 @@ export class PaginationHelper {
     } catch {
       throw new BadRequestException('Cursor invalido');
     }
+  }
+
+  private static buildMongoSort(
+    sorting?: SortingInput[],
+  ): Record<string, 1 | -1> {
+    const sortObject: Record<string, 1 | -1> = {};
+
+    if (sorting && sorting.length > 0) {
+      for (const sort of sorting) {
+        sortObject[sort.field] = sort.direction === SortDirection.DESC ? -1 : 1;
+      }
+    }
+
+    if (!sortObject['_id']) {
+      sortObject['_id'] = 1;
+    }
+
+    return sortObject;
   }
 }

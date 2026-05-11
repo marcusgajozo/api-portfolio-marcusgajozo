@@ -40,6 +40,7 @@ export class ProjectsService {
       model: this.projectModel,
       pagination,
       filter,
+      sorting,
     });
   }
 

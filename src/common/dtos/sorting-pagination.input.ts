@@ -4,18 +4,15 @@ import {
   SORTABLE_KEY,
   SortableMetadata,
 } from '../decorators/sortable.decorator';
-
-export enum SortDirection {
-  asc = 'asc',
-  desc = 'desc',
-}
+import { SortingInput } from '../types/sorting-input.type';
+import { SortDirection } from '../enums/sort-direction.enum';
 
 registerEnumType(SortDirection, {
   name: 'SortDirection',
   description: 'Direção da ordenação (ascendente ou descendente)',
 });
 
-const sortingTypeCache = new Map<string, Type<object>>();
+const sortingTypeCache = new Map<string, Type<SortingInput>>();
 const enumCache = new Map<string, object>();
 
 function getSortablePaths<T>(classRef: Type<T>, prefix = ''): string[] {
@@ -42,7 +39,7 @@ function getSortablePaths<T>(classRef: Type<T>, prefix = ''): string[] {
 
 export function createSortingPaginationType<TClass>(
   classRef: Type<TClass>,
-): Type<object> {
+): Type<SortingInput> {
   const inputName = `${classRef.name}SortingInput`;
   const enumName = `${classRef.name}SortableFieldsEnum`;
 
@@ -71,7 +68,7 @@ export function createSortingPaginationType<TClass>(
   }
 
   @InputType(inputName)
-  class SortingPaginationInput {
+  class SortingPaginationInput implements SortingInput {
     @Field(() => FieldsEnum)
     field: string;
 
