@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import {
   Sortable,
   SORTABLE_KEY,
