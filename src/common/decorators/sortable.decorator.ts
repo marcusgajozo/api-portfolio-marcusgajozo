@@ -1,15 +1,17 @@
 import 'reflect-metadata';
-import { Type } from '@nestjs/common';
 
 export const SORTABLE_KEY = 'sortable_fields';
+const TYPE_KEY = 'design:type';
 
 export interface SortableMetadata {
   name: string;
-  typeFn?: () => Type<any>;
+  type: unknown;
 }
 
-export function Sortable(typeFn?: () => Type<any>): PropertyDecorator {
+export function Sortable(): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {
+    const type: unknown = Reflect.getMetadata(TYPE_KEY, target, propertyKey);
+
     const sortableFields: SortableMetadata[] =
       (Reflect.getMetadata(SORTABLE_KEY, target) as
         | SortableMetadata[]
@@ -20,7 +22,7 @@ export function Sortable(typeFn?: () => Type<any>): PropertyDecorator {
     const newSortableField = [...sortableFields];
 
     if (!newSortableField.find((f) => f.name === fieldName)) {
-      newSortableField.push({ name: fieldName, typeFn });
+      newSortableField.push({ name: fieldName, type });
     }
 
     Reflect.defineMetadata(SORTABLE_KEY, newSortableField, target);

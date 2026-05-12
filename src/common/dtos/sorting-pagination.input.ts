@@ -16,7 +16,7 @@ const sortingTypeCache = new Map<string, Type<SortingInput>>();
 const enumCache = new Map<string, object>();
 
 function getSortablePaths<T>(classRef: Type<T>, prefix = ''): string[] {
-  const sortableFields: SortableMetadata[] =
+  const sortableFields =
     (Reflect.getMetadata(SORTABLE_KEY, classRef.prototype as object) as
       | SortableMetadata[]
       | undefined) ?? [];
@@ -24,9 +24,12 @@ function getSortablePaths<T>(classRef: Type<T>, prefix = ''): string[] {
   const paths: string[] = [];
 
   for (const field of sortableFields) {
-    if (field.typeFn) {
+    if (field.type === Object) {
       paths.push(
-        ...getSortablePaths(field.typeFn(), `${prefix}${field.name}.`),
+        ...getSortablePaths(
+          field.type as Type<unknown>,
+          `${prefix}${field.name}.`,
+        ),
       );
       continue;
     }

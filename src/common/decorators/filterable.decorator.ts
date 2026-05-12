@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
 export const FILTERABLE_FIELDS_KEY = 'custom:filterable_fields';
+const TYPE_KEY = 'design:type';
 
 export interface FilterableField {
   propertyKey: string | symbol;
@@ -9,11 +10,7 @@ export interface FilterableField {
 
 export function Filterable(): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {
-    const type: unknown = Reflect.getMetadata(
-      'design:type',
-      target,
-      propertyKey,
-    );
+    const type: unknown = Reflect.getMetadata(TYPE_KEY, target, propertyKey);
 
     const existingFields: FilterableField[] =
       (Reflect.getMetadata(FILTERABLE_FIELDS_KEY, target) as
