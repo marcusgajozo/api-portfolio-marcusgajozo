@@ -7,7 +7,7 @@ describe('(Unit test) @Public', () => {
     myRouteHandler(this: void) {}
   }
 
-  it('deve definir o metadado isPublic como true em um método', () => {
+  it('should must set the isPublic metadata to true in a method', () => {
     const isPublic = Reflect.getMetadata(
       IS_PUBLIC_KEY,
       TestMethod.prototype.myRouteHandler,
@@ -16,13 +16,11 @@ describe('(Unit test) @Public', () => {
     expect(isPublic).toBe(true);
   });
 
-  it('deve definir o metadado isPublic como true na classe', () => {
+  it('should set the isPublic metadata to true in a class', () => {
     const isPublic = Reflect.getMetadata(
       IS_PUBLIC_KEY,
       TestMethod.prototype.constructor,
     ) as boolean | undefined;
-
-    console.log('isPublic:', isPublic);
 
     expect(isPublic).toBe(true);
   });
