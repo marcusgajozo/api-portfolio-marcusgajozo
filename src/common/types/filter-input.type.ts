@@ -44,7 +44,4 @@ export type DeepFilter<T> = {
   [K in keyof T]?: MapTypeToFilter<T[K]>;
 };
 
-export type FilterType<T> = DeepFilter<T> & {
-  AND?: FilterType<T>[];
-  OR?: FilterType<T>[];
-};
+export type FilterType<T> = DeepFilter<T>;
