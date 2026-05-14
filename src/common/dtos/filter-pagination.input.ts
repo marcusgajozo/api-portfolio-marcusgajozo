@@ -83,6 +83,7 @@ export function createFilterType<T>(classRef: Type<T>): Type<FilterType<T>> {
 
   for (const field of fields) {
     const type = field.type as FilterConstructor;
+
     let fieldGraphQLType:
       | FilterInputType
       | Type<FilterType<unknown>>
