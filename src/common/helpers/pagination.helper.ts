@@ -13,10 +13,6 @@ import {
 } from '../types/filter-input.type';
 import { SortDirection } from '../enums/sort-direction.enum';
 
-type FilterPrimitive = string | number | boolean | Date;
-type FilterObject = { [key: string]: FilterValue | undefined };
-type FilterValue = FilterPrimitive | FilterPrimitive[] | FilterObject;
-
 export type FilterOperatorKeys =
   | keyof StringFilter
   | keyof NumberFilter
@@ -47,6 +43,20 @@ export class PaginationHelper {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
   }
 
+  private static isFilterOperatorKey(key: string): key is FilterOperatorKeys {
+    return (this.OPERATORS as readonly string[]).includes(key);
+  }
+
+  private static isFilterRecord(
+    value: unknown,
+  ): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private static isOperatorNode(node: Record<string, unknown>): boolean {
+    return Object.keys(node).some((key) => this.isFilterOperatorKey(key));
+  }
+
   private static buildMongoQuery<T>(
     filterInput?: FilterType<T>,
   ): QueryFilter<T> {
@@ -56,54 +66,47 @@ export class PaginationHelper {
 
     const query: Record<string, Record<string, unknown>> = {};
 
-    const processNode = (node: FilterValue | undefined, path: string) => {
-      if (!node || typeof node !== 'object' || Array.isArray(node)) return;
+    const processNode = (node: unknown, path: string): void => {
+      if (!this.isFilterRecord(node)) return;
 
-      const keys = Object.keys(node);
-      const isOperatorNode = keys.some((key) =>
-        this.OPERATORS.includes(key as FilterOperatorKeys),
-      );
+      if (this.isOperatorNode(node)) {
+        const target: Record<string, unknown> = {};
+        query[path] = target;
 
-      if (isOperatorNode) {
-        query[path] = {};
-        const target = query[path];
-
-        const entries = Object.entries(node) as [FilterOperatorKeys, unknown][];
-
-        for (const [operator, value] of entries) {
-          if (value === undefined || value === null) continue;
-
-          if (operator === 'like') {
-            target['$regex'] = new RegExp(this.escapeRegex(value as string));
+        for (const [operator, value] of Object.entries(node)) {
+          if (
+            value === undefined ||
+            value === null ||
+            !this.isFilterOperatorKey(operator)
+          ) {
             continue;
           }
 
-          if (operator === 'ilike') {
+          if (operator === 'like' || operator === 'ilike') {
+            if (typeof value !== 'string') continue;
+
             target['$regex'] = new RegExp(
-              this.escapeRegex(value as string),
-              'i',
+              this.escapeRegex(value),
+              operator === 'ilike' ? 'i' : undefined,
             );
             continue;
           }
 
-          const mongoOperator = `$${operator}`;
-
-          target[mongoOperator] = value;
+          target[`$${operator}`] = value;
         }
         return;
       }
 
       for (const [key, value] of Object.entries(node)) {
-        const newPath = path ? `${path}.${key}` : key;
-        processNode(value as unknown as FilterValue, newPath);
+        processNode(value, path ? `${path}.${key}` : key);
       }
     };
 
     for (const [key, value] of Object.entries(filterInput)) {
-      processNode(value as unknown as FilterValue, key);
+      processNode(value, key);
     }
 
-    return query as QueryFilter<T>;
+    return query;
   }
 
   static async paginate<T extends BaseSchema>({

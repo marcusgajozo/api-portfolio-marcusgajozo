@@ -1,6 +1,12 @@
 import { Filterable } from '../../decorators/filterable.decorator';
 import { createFilterType } from '../filter-pagination.input';
 
+const getDesignType = Reflect.getMetadata as (
+  metadataKey: string,
+  target: object,
+  propertyKey: string | symbol,
+) => unknown;
+
 describe('(Unit tests) FilterPaginationInput', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -45,15 +51,15 @@ describe('(Unit tests) FilterPaginationInput', () => {
 
     const FilterTypeClass = createFilterType(TestClass);
 
-    const nameField = Reflect.getMetadata(
+    const nameField = getDesignType(
       'design:type',
-      FilterTypeClass.prototype,
+      FilterTypeClass.prototype as object,
       'name',
     );
 
-    const isActiveField = Reflect.getMetadata(
+    const isActiveField = getDesignType(
       'design:type',
-      FilterTypeClass.prototype,
+      FilterTypeClass.prototype as object,
       'isActive',
     );
 
