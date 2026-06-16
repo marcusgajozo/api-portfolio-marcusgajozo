@@ -1,4 +1,4 @@
-import { IS_PUBLIC_KEY, Public } from '../public.decorator';
+import { IS_PUBLIC_KEY, Public } from './public.decorator';
 
 describe('(Unit test) @Public', () => {
   @Public()

@@ -1,5 +1,5 @@
-import { Filterable } from '../../decorators/filterable.decorator';
-import { createFilterType } from '../filter-pagination.input';
+import { Filterable } from '../decorators/filterable.decorator';
+import { createFilterType } from './filter-pagination.input';
 
 const getDesignType = Reflect.getMetadata as (
   metadataKey: string,

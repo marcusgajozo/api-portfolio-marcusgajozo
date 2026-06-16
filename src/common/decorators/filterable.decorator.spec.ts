@@ -2,7 +2,7 @@ import {
   Filterable,
   FILTERABLE_FIELDS_KEY,
   FilterableField,
-} from '../filterable.decorator';
+} from './filterable.decorator';
 
 describe('Filterable Decorator', () => {
   class BaseTestClass {

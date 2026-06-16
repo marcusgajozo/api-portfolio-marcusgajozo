@@ -1,8 +1,4 @@
-import {
-  Sortable,
-  SORTABLE_KEY,
-  SortableMetadata,
-} from '../sortable.decorator';
+import { Sortable, SORTABLE_KEY, SortableMetadata } from './sortable.decorator';
 
 describe('Sortable Decorator', () => {
   describe('when applied', () => {
