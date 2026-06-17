@@ -20,6 +20,8 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "strictPropertyInitialization": false
-  }
+    "strictPropertyInitialization": false,
+    "types": ["jest", "node"]
+  },
+  "exclude": ["node_modules", "dist"]
 }
