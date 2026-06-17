@@ -1,5 +1,7 @@
 import { getDesignType } from '@/test/utils/get-design-type';
 import { createPaginationType } from './pagination.type';
+import { TypeMetadataStorage } from '@nestjs/graphql';
+import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
 
 describe('(Unit test) pagination.type.ts', () => {
   class BaseClass {
@@ -13,7 +15,7 @@ describe('(Unit test) pagination.type.ts', () => {
     it('deve criar classes paginadas com os nomes corretos', () => {
       expect(BaseClassPaginationType.name).toBe('BaseClassPaginationType');
 
-      type ClassConstructor = new (...args: any[]) => any;
+      type ClassConstructor = new (...args: unknown[]) => unknown;
 
       const getTypeFunction = getDesignType(
         'design:type:fn',
@@ -30,11 +32,38 @@ describe('(Unit test) pagination.type.ts', () => {
       }
     });
 
-    it('deve ter os decoradores GraphQL corretos', () => {
-      // TODO: Verificar se BaseClassPaginationType é um ObjectType
-      // TODO: Verificar se 'edges' é um Field que retorna um array de EdgeType
-      // TODO: Verificar se 'pageInfo' é um Field que retorna PageInfoType
-      // TODO: Verificar se 'totalCount' é um Field que retorna Int
+    it('deve ter o decorador @ObjectType GraphQL na classe', () => {
+      const objectTypes = TypeMetadataStorage.getObjectTypesMetadata();
+
+      const objectType = objectTypes.find((type) => {
+        return type.name === BaseClassPaginationType.name;
+      });
+
+      expect(objectType).toBeDefined();
+    });
+
+    it('deve ter os campos corretos', () => {
+      LazyMetadataStorage.load([BaseClassPaginationType]);
+
+      const objectTypes = TypeMetadataStorage.getObjectTypesMetadata();
+
+      const objectType = objectTypes.find((type) => {
+        return type.name === BaseClassPaginationType.name;
+      });
+
+      TypeMetadataStorage.compileClassMetadata(objectType ? [objectType] : []);
+
+      const fields = objectType?.properties || [];
+
+      const edgesField = fields.find((field) => field.name === 'edges');
+      const pageInfoField = fields.find((field) => field.name === 'pageInfo');
+      const totalCountField = fields.find(
+        (field) => field.name === 'totalCount',
+      );
+
+      expect(edgesField).toBeDefined();
+      expect(pageInfoField).toBeDefined();
+      expect(totalCountField).toBeDefined();
     });
 
     it('deve criar uma instância paginada com dados', () => {
