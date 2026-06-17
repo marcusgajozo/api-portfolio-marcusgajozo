@@ -1,4 +1,4 @@
-import { getDesignType } from '@/test/utils/get-design-type';
+import { getDesignType } from '@/test/utils/get-design-type.util';
 import { Filterable } from '../decorators/filterable.decorator';
 import { createFilterType } from './filter-pagination.input';
 

@@ -1,4 +1,4 @@
-import { getDesignType } from '@/test/utils/get-design-type';
+import { getDesignType } from '@/test/utils/get-design-type.util';
 import { createPaginationType } from './pagination.type';
 import { TypeMetadataStorage } from '@nestjs/graphql';
 import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
