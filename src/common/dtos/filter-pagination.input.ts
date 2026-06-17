@@ -95,6 +95,13 @@ export function createFilterType<T>(classRef: Type<T>): Type<FilterType<T>> {
 
     if (!fieldGraphQLType) continue;
 
+    Reflect.defineMetadata(
+      'design:type',
+      type,
+      FilterInputBase.prototype,
+      field.propertyKey,
+    );
+
     Field(() => fieldGraphQLType, { nullable: true })(
       FilterInputBase.prototype,
       field.propertyKey,

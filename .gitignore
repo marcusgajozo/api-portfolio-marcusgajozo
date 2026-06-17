@@ -11,6 +11,7 @@
 !docker-compose.local.yaml
 !Dockerfile
 !eslint.config.js
+!jest.config.ts
 !LICENSE
 !nest-cli.json
 !package.json

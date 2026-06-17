@@ -1,11 +1,6 @@
+import { getDesignType } from '@/test/utils/get-design-type';
 import { Filterable } from '../decorators/filterable.decorator';
 import { createFilterType } from './filter-pagination.input';
-
-const getDesignType = Reflect.getMetadata as (
-  metadataKey: string,
-  target: object,
-  propertyKey: string | symbol,
-) => unknown;
 
 describe('(Unit tests) FilterPaginationInput', () => {
   afterEach(() => {
@@ -49,17 +44,17 @@ describe('(Unit tests) FilterPaginationInput', () => {
       isActive: boolean;
     }
 
-    const FilterTypeClass = createFilterType(TestClass);
+    class FilterTypeClass extends createFilterType(TestClass) {}
 
     const nameField = getDesignType(
       'design:type',
-      FilterTypeClass.prototype as object,
+      FilterTypeClass.prototype,
       'name',
     );
 
     const isActiveField = getDesignType(
       'design:type',
-      FilterTypeClass.prototype as object,
+      FilterTypeClass.prototype,
       'isActive',
     );
 
@@ -67,7 +62,7 @@ describe('(Unit tests) FilterPaginationInput', () => {
     expect(isActiveField).toBe(Boolean);
   });
 
-  it('deve ignorar campos sem tipo de filtro correspondente');
+  it('deve ignorar campos sem tipo de filtro correspondente', () => {});
 
-  it('deve lidar com tipos de filtro aninhados');
+  it('deve lidar com tipos de filtro aninhados', () => {});
 });
