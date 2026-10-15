@@ -1,98 +1,82 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API do portfólio
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API GraphQL que serve o meu portfólio e o blog. Cuida da autenticação, do cadastro de projetos e dos usuários, com a sessão em cookies httpOnly.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
+![GraphQL](https://img.shields.io/badge/GraphQL-Apollo-E10098?logo=graphql&logoColor=white)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-Apache--2.0-blue)
 
-## Description
+## Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- NestJS 11 com TypeScript 5.9
+- GraphQL code-first com Apollo, schema gerado a partir dos decorators
+- MongoDB com Mongoose 9
+- JWT com access token de 15 minutos e refresh token de 7 dias, gravados em cookies httpOnly
+- Validação na borda com class-validator e `ValidationPipe` global em `forbidNonWhitelisted`
+- pnpm como gerenciador de pacotes e Node 24, versão fixada no `.nvmrc`
+- Docker com três estágios no Dockerfile: development, builder e production
+- GitHub Actions publicando imagem multi-arch no GHCR e disparando o deploy por webhook do Portainer
 
-## Project setup
+## Como rodar
 
 ```bash
-$ pnpm install
+pnpm install
+cp .env.example .env       # troque o JWT_SECRET antes de qualquer coisa
+pnpm docker:up             # sobe a API, o MongoDB e o Mongo Express
 ```
 
-## Compile and run the project
+A API responde em `http://localhost:5050/graphql`, com o GraphiQL habilitado. O Mongo Express fica em `http://localhost:8081`.
+
+Para rodar sem Docker, use `pnpm start:dev` com as variáveis `MONGODB_*` apontando para um MongoDB acessível.
+
+## API GraphQL
+
+Tudo exige autenticação, menos o que está marcado como público.
+
+**Autenticação**
+
+- `query health: String` (público): retorna `ok`
+- `mutation login(input: LoginInput!)` (público): valida as credenciais e grava os cookies `accessToken` e `refreshToken`
+
+**Projetos**
+
+- `query getProjects(pagination: PaginationInput, filter: ProjectFilterInput, sorting: [ProjectSortingInput!]): ProjectPaginationType`
+- `query getProjectId(id: ID!): Project`
+- `mutation createProject(createProjectInput: CreateProjectInput!): Project`
+- `mutation updateProject(id: ID!, updateProjectInput: UpdateProjectInput!): Project`
+- `mutation deleteProject(id: ID!): Project`
+
+## Organização do código
+
+```
+src/
+  common/           decorators (@Public, @Filterable, @Sortable), DTOs e tipos de
+                    paginação, guard de JWT, helper de paginação, schema base do Mongoose
+  modules/
+    app/            composição dos módulos, configuração do GraphQL, guard global
+    authentication/ login, emissão dos tokens e escrita dos cookies
+    database/       configuração da conexão com o Mongo
+    projects/       CRUD de projetos com paginação, filtro e ordenação
+    users/          schema e serviço de usuários
+```
+
+Filtro e ordenação vêm de decorators nos DTOs (`@Filterable` e `@Sortable`), e o `pagination.helper` monta a consulta no Mongo. É isso que deixa `getProjects` aceitar paginação, filtro e ordenação sem repetir esse código em cada módulo novo.
+
+## Testes
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm test        # unitários com Jest
+pnpm test:e2e    # ponta a ponta
+pnpm test:cov    # com cobertura
 ```
 
-## Run tests
+## Status
 
-```bash
-# unit tests
-$ pnpm run test
+Funcionando: autenticação com JWT, CRUD de projetos com paginação, filtro e ordenação, ambiente local em Docker e pipeline que builda, publica no GHCR e faz deploy por webhook.
 
-# e2e tests
-$ pnpm run test:e2e
+Ainda por fazer: módulo de artigos, integração com as APIs do LinkedIn e do GitHub para importar foto e repositórios, e padronização de commits com commitlint e husky.
 
-# test coverage
-$ pnpm run test:cov
-```
+## Licença
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Apache-2.0, conforme o arquivo `LICENSE`.
